@@ -1,0 +1,1 @@
+web: $(npm bin)/coffee ./src/server.coffee

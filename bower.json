@@ -1,0 +1,20 @@
+{
+  "name": "react-coffee-node-template",
+  "version": "0.0.0",
+  "authors": [
+    "Khaled Agrama"
+  ],
+  "description": "Web app starter template using react + coffeescript + node.js",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+  },
+  "devDependencies": {}
+}

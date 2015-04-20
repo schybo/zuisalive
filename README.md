@@ -1,5 +1,9 @@
-react-express-template
+zuisalive
 =============================
+
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bscheibe/zuisalive?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=body_badge)
+
+Visualizing data the easy way!
 
 Web app starter template with React, React Router, ES6 (via Babel), CoffeeScript, Express/Node.js, Semantic-UI, Gulp and more.
 

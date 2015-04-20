@@ -7,15 +7,14 @@ Visualizing data the easy way!
 
 Web app starter template with React, React Router, ES6 (via Babel), CoffeeScript, Express/Node.js, Semantic-UI, Gulp and more.
 
-[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/khaled/react-express-template)
-
 ### Getting Started ###
 
 1. Fork and/or clone
 2. Run ```npm install```
-3. Start the dev server by running ```$(npm bin)/gulp```
-4. Visit http://localhost:3000
-5. Get to work!
+3. Install `npm install -g nodemon` and `npm install -g coffee-script`
+4. Start the dev server by running ```$(npm bin)/gulp```
+5. Visit http://localhost:3000
+6. Get to work!
 
 ### Languages / Frameworks / Libraries ###
 

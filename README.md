@@ -11,7 +11,7 @@ Web app starter template with React, React Router, ES6 (via Babel), CoffeeScript
 
 1. Fork and/or clone
 2. Run ```npm install```
-3. Install `npm install -g nodemon` and `npm install -g coffee-script`
+3. Run `npm install -g coffee-script` if not installed
 4. Start the dev server by running ```$(npm bin)/gulp```
 5. Visit http://localhost:3000
 6. Get to work!

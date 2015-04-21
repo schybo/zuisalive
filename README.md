@@ -1,6 +1,8 @@
 zuisalive
 =============================
 
+[![Build Status](https://travis-ci.org/bscheibe/zuisalive.svg?branch=master)](https://travis-ci.org/bscheibe/zuisalive)
+
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bscheibe/zuisalive?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=body_badge)
 
 Visualizing data the easy way!

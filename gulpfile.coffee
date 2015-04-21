@@ -8,6 +8,7 @@ less = require 'gulp-less'
 postcss = require 'gulp-postcss'
 autoprefixer = require 'autoprefixer-core'
 rimraf = require 'rimraf'
+eslint = require 'gulp-eslint'
 GLOBAL.Promise = (require 'es6-promise').Promise # to make gulp-postcss happy
 
 src_path = "src"
@@ -57,6 +58,12 @@ gulp.task 'js', -> js(false)
 
 gulp.task 'js-dev', -> js(true)
 
+gulp.task 'lint', ->
+  gulp.src("#{src_path}/public/js/*.js")
+  .pipe(eslint())
+  .pipe(eslint.format())
+  .pipe(eslint.failOnError())
+
 gulp.task 'css', ->
   gulp.src("#{src_path}/styles.less")
   .pipe(plumber())
@@ -75,7 +82,7 @@ gulp.task 'copy', ->
   gulp.src("#{src_path}/favicon.ico").pipe(gulp.dest(dist_path))
   gulp.src("#{semantic_path}/themes/default/assets/**/*").pipe(gulp.dest("#{dist_path}/themes/default/assets/"))
 
-gulp.task 'build', ['clean', 'copy', 'css', 'js']
+gulp.task 'build', ['clean', 'copy', 'css', 'lint', 'js']
 
 server_main = "#{src_path}/server.coffee"
 gulp.task 'server', ->
@@ -85,7 +92,7 @@ gulp.task 'server', ->
     env:
       PORT: process.env.PORT or 3000
 
-gulp.task 'default', ['clean', 'copy', 'css', 'server', 'js-dev', 'watch']
+gulp.task 'default', ['clean', 'copy', 'css', 'lint', 'server', 'js-dev', 'watch']
 
 gulp.task 'watch', ['copy'], ->
   livereload.listen()

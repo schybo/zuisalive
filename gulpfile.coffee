@@ -1,3 +1,4 @@
+##Test Comment
 gulp = require 'gulp'
 gutil = require 'gulp-util'
 livereload = require 'gulp-livereload'
@@ -12,6 +13,7 @@ eslint = require 'gulp-eslint'
 GLOBAL.Promise = (require 'es6-promise').Promise # to make gulp-postcss happy
 
 src_path = "src"
+style_path = "public/styles"
 components_path = "bower_components"
 modules_path = "node_modules"
 semantic_path = "#{modules_path}/semantic-ui-css"
@@ -65,7 +67,7 @@ gulp.task 'lint', ->
   .pipe(eslint.failOnError())
 
 gulp.task 'css', ->
-  gulp.src("#{src_path}/styles.less")
+  gulp.src("#{style_path}/styles.less")
   .pipe(plumber())
   .pipe(less(
     paths: [components_path, modules_path]
@@ -97,5 +99,5 @@ gulp.task 'default', ['clean', 'copy', 'css', 'lint', 'server', 'js-dev', 'watch
 gulp.task 'watch', ['copy'], ->
   livereload.listen()
   gulp.watch(["#{dist_path}/**/*"]).on('change', livereload.changed)
-  gulp.watch ["#{src_path}/**/*.less"], ['css']
+  gulp.watch ["#{style_path}/**/*.less"], ['css']
   gulp.watch ["#{src_path}/**/*.html"], ['copy']

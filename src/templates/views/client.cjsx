@@ -1,8 +1,7 @@
 window.$ = window.jQuery = require('jquery')
-require('semantic-ui-css/semantic')
 React = require('react/addons')
 Router = require('react-router')
-Header = require('./header')
+Header = require('../partials/header')
 
 {Route, RouteHandler, DefaultRoute, Link} = Router
 

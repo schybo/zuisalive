@@ -38,6 +38,8 @@
     "transform-loader": "^0.2.1"
   },
   "devDependencies": {
-    "gulp-inject": "^1.2.0"
+    "chalk": "^1.0.0",
+    "gulp-inject": "^1.2.0",
+    "run-sequence": "^1.1.0"
   }
 }

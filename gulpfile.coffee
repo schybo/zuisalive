@@ -18,6 +18,7 @@ src_path = 'src'
 style_path = 'public/styles'
 layouts_path = 'templates/layouts'
 partials_path = 'templates/partials'
+views_path = 'templates/views'
 components_path = 'public/vendor'
 modules_path = 'node_modules'
 semantic_path = '#{modules_path}/semantic-ui-css'
@@ -30,31 +31,31 @@ webpack = (name, ext, watch) ->
 #    bail: true
     watch: watch
     cache: true
-    devtool: 'source-map'
+    devtool: "source-map"
     output:
-      filename: '#{name}.js'
-      sourceMapFilename: '[file].map'
+      filename: "#{name}.js"
+      sourceMapFilename: "[file].map"
     resolve:
-      extensions: ['', '.webpack.js', '.web.js', '.js', '.jsx', '.coffee', '.cjsx']
+      extensions: ["", ".webpack.js", ".web.js", ".js", ".jsx", ".coffee", ".cjsx"]
       modulesDirectories: [components_path, modules_path]
     module:
       loaders: [
         {
           test: /\.coffee$/
-          loader: 'coffee-loader'
+          loader: "coffee-loader"
         }
         {
           test: [/\.js$/, /\.jsx$/]
           exclude: [new RegExp(modules_path), new RegExp(components_path)]
-          loader: 'babel-loader'
+          loader: "babel-loader"
         }
         {
           test: /\.cjsx$/
-          loader: 'transform?coffee-reactify'
+          loader: "transform?coffee-reactify"
         }
       ]
 
-  gulp.src('#{src_path}/**/#{name}.#{ext}')
+  gulp.src("#{src_path}/**/#{name}.#{ext}")
   .pipe(gwebpack(options))
   .pipe(gulp.dest(dist_path))
 
@@ -72,7 +73,7 @@ gulp.task 'lint', ->
 
 gulp.task 'index', ->
   target = gulp.src('#{src_path}/#{layouts_path}/index.html')
-  sources = gulp.src(['./src/**/*.js', './src/**/*.css', './src/#{partials_path}/*.html'], {read: false})
+  sources = gulp.src(['#{src_path}/**/*.js', '#{src_path}/**/*.css', '#{src_path}/#{partials_path}/*.html'], {read: false})
   target.pipe(inject(sources))
     .pipe(gulp.dest(''))
 
@@ -94,9 +95,9 @@ gulp.task 'copy', ->
   gulp.src('#{src_path}/public/**/*').pipe(gulp.dest(dist_path))
   gulp.src('#{semantic_path}/themes/default/assets/**/*').pipe(gulp.dest('#{dist_path}/themes/default/assets/'))
 
-gulp.task 'build', ['clean', 'copy', 'css', 'lint', 'js']
+gulp.task 'build', ['clean', 'copy', 'css', 'lint', 'index', 'js']
 
-server_main = 'server.coffee'
+server_main = './server.coffee'
 gulp.task 'server', ->
   nodemon
     script: server_main
@@ -104,7 +105,7 @@ gulp.task 'server', ->
     env:
       PORT: process.env.PORT or 3000
 
-gulp.task 'default', ['clean', 'copy', 'css', 'lint', 'server', 'js-dev', 'watch']
+gulp.task 'default', ['clean', 'copy', 'css', 'lint', 'index', 'server', 'js-dev', 'watch']
 
 # What about js?
 

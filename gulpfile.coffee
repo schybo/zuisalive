@@ -120,7 +120,7 @@ gulp.task 'watch', ['copy'], ->
   livereload.listen()
   gulp.watch(["#{dist_path}/**/*"]).on('change', livereload.changed)
   gulp.watch ["#{src_path}/#{styles_path}/**/*.less"], ['css']
-  gulp.watch ["#{src_path}/**/*.html"], ['copy']
+  gulp.watch ["#{src_path}/templates/**/*.html"], ['copy']
 
 # Two step build for now
 gulp.task 'bp', ['clean', 'copy', 'css', 'js', 'lint']

@@ -74,10 +74,10 @@ webpack = (name, ext, watch) ->
 js = (watch) -> webpack('client', 'cjsx', watch)
 
 # jsFiles = null
-gulp.task 'js', ->
+gulp.task 'jsClient', ->
   js(false)
 
-gulp.task 'js-dev', ->
+gulp.task 'jsClient-dev', ->
   js(true)
 
 gulp.task 'lint', ->
@@ -101,25 +101,45 @@ gulp.task 'css', ->
   .pipe(rename({suffix: '.min'}))
   .pipe(gulp.dest(dist_path + '/styles'))
 
-appJsFiles = null
-gulp.task 'appJs', ->
-  appJsFiles = gulp.src("#{src_path}/#{js_path}/*.js")
+jsFiles = null
+gulp.task 'js', ->
+  jsFiles = gulp.src("#{src_path}/#{js_path}/*.js")
   .pipe(concat('site.js'))
   .pipe(uglify())
   .pipe(rename({suffix: '.min'}))
   .pipe(gulp.dest(dist_path + '/js/'))
 
+# Find out how to use the min files
+cssVendorFiles = null
+gulp.task 'cssVendor', ->
+  cssVendorFiles = gulp.src(bowerFiles('**/*.css'), {base: './src/vendor'})
+  .pipe(concat('vendor.css'))
+  # .pipe(cssmin())
+  # .pipe(rename({suffix: '.min'}))
+  .pipe(gulp.dest(dist_path + '/vendor/'))
+
+# Find out how to use the min files
+jsVendorFiles = null
+gulp.task 'jsVendor', ->
+  jsVendorFiles = gulp.src(bowerFiles('**/*.js'), {base: './src/vendor'})
+  .pipe(concat('vendor.js'))
+  # .pipe(uglify())
+  # .pipe(rename({suffix: '.min'}))
+  .pipe(gulp.dest(dist_path + '/vendor/'))
+
 gulp.task 'index', ->
   target = gulp.src("#{src_path}/#{layouts_path}/index.html")
-
   partialSources = gulp.src(["#{src_path}/#{partials_path}/head/*.html"])
-  bowerSources = gulp.src(bowerFiles(), {read: false, base: './src/vendor'})
+  # bowerSources = gulp.src(bowerFiles(), {read: false, base: './src/vendor'})
 
   target
-  .pipe(inject(bowerSources, {name: 'bower', ignorePath: 'src'}))
+  .pipe(inject(es.merge(
+    cssVendorFiles,
+    jsVendorFiles
+  ), {name: 'bower', ignorePath: 'dist'}))
   .pipe(inject(es.merge(
     cssFiles,
-    appJsFiles
+    jsFiles
   ), {ignorePath: 'dist'}))
   .pipe(inject(partialSources, {
     starttag: '<!-- inject:head:{{ext}} -->',
@@ -131,12 +151,11 @@ gulp.task 'clean', ->
   rimraf.sync(dist_path)
 
 gulp.task 'copy', ->
-  gulp.src("#{src_path}/#{partials_path}/*.html").pipe(gulp.dest(dist_path + '/partials'))
   # gulp.src("#{src_path}/public/**/*").pipe(gulp.dest(dist_path))
-  gulp.src(bowerFiles(), {read: false, base: './src/vendor'}).pipe(gulp.dest(dist_path + '/vendor'))
+  # gulp.src(bowerFiles(), {read: false, base: './src/vendor'}).pipe(gulp.dest(dist_path + '/vendor'))
   gulp.src("#{semantic_path}/themes/default/assets/**/*").pipe(gulp.dest("#{dist_path}/themes/default/assets/"))
 
-gulp.task 'build', ['clean', 'copy', 'css', 'appJs', 'js', 'lint', 'index']
+gulp.task 'build', ['clean', 'copy', 'css', 'js', 'cssVendor', 'jsVendor', 'jsClient', 'lint', 'index']
 
 server_main = "./server.coffee"
 gulp.task 'server', ->
@@ -146,14 +165,10 @@ gulp.task 'server', ->
     env:
       PORT: process.env.PORT or 3000
 
-gulp.task 'default', ['clean', 'copy', 'css', 'appJs', 'js', 'lint', 'index', 'server', 'watch']
+gulp.task 'default', ['clean', 'copy', 'css', 'js', 'cssVendor', 'jsVendor', 'jsClient-dev', 'lint', 'index', 'server', 'watch']
 
 gulp.task 'watch', ['copy'], ->
   livereload.listen()
   gulp.watch(["#{dist_path}/**/*"]).on('change', livereload.changed)
   gulp.watch ["#{src_path}/#{styles_path}/**/*.less"], ['css']
   gulp.watch ["#{src_path}/templates/**/*.html"], ['copy']
-
-# Two step build for now
-gulp.task 'bp', ['clean', 'copy', 'css', 'js', 'lint', 'index']
-gulp.task 'launch', ['server', 'watch']

@@ -26,11 +26,12 @@ GLOBAL.Promise = (require 'es6-promise').Promise # to make gulp-postcss happy
 #***** Paths *********#
 src_path = 'src'
 styles_path = 'public/styles'
+styles_partial_path = "#{src_path}/#{styles_path}/partials"
 js_path = 'public/js'
 layouts_path = 'templates/layouts'
 partials_path = 'templates/partials'
 views_path = 'templates/views'
-components_path = "#{src_path}/#{styles_path}"
+vendor_path = "#{src_path}/vendor"
 modules_path = 'node_modules'
 semantic_path = "#{modules_path}/semantic-ui-css"
 dist_path = 'dist'
@@ -48,7 +49,7 @@ webpack = (name, ext, watch) ->
       sourceMapFilename: "[file].map"
     resolve:
       extensions: ["", ".webpack.js", ".web.js", ".js", ".jsx", ".coffee", ".cjsx"]
-      modulesDirectories: [components_path, modules_path]
+      modulesDirectories: [vendor_path, modules_path]
     module:
       loaders: [
         {
@@ -57,7 +58,7 @@ webpack = (name, ext, watch) ->
         }
         {
           test: [/\.js$/, /\.jsx$/]
-          exclude: [new RegExp(modules_path), new RegExp(components_path)]
+          exclude: [new RegExp(modules_path), new RegExp(vendor_path)]
           loader: "babel-loader"
         }
         {
@@ -92,7 +93,7 @@ gulp.task 'css', ->
   .pipe(plumber())
   # .pipe(sourcemaps.init())
   .pipe(less(
-    paths: [components_path, modules_path]
+    paths: [styles_partial_path]
   ))
   .on('error', err)
   # .pipe(sourcemaps.write())

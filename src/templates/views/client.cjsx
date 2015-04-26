@@ -1,4 +1,3 @@
-window.$ = window.jQuery = require('jquery')
 React = require('react/addons')
 Router = require('react-router')
 Header = require('../partials/header')

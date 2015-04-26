@@ -68,12 +68,12 @@ webpack = (name, ext, watch) ->
 
 js = (watch) -> webpack('client', 'cjsx', watch)
 
-jsFiles = null
+# jsFiles = null
 gulp.task 'js', ->
-  jsFiles = js(false)
+  js(false)
 
 gulp.task 'js-dev', ->
-  jsFiles = js(true)
+  js(true)
 
 gulp.task 'lint', ->
   gulp.src("#{src_path}/public/js/*.js")
@@ -104,17 +104,14 @@ gulp.task 'index', ->
   target
   .pipe(inject(bowerSources, {name: 'bower', ignorePath: 'src'}))
   .pipe(inject(es.merge(
-    cssFiles,
-    jsFiles
+    cssFiles
   ), {ignorePath: 'dist'}))
   # .pipe(inject(publicSources))
   .pipe(inject(jsSources))
-  .pipe(inject(partialSources), {
+  .pipe(inject(partialSources, {
     starttag: '<!-- inject:head:{{ext}} -->',
-    transform: (filePath, file) ->
-      #return file contents as string 
-      return file.contents.toString('utf8')
-  })
+    transform: (filePath, file) -> file.contents.toString('utf8')
+  }))
   .pipe(gulp.dest(dist_path))
 
 gulp.task 'clean', ->
@@ -136,7 +133,7 @@ gulp.task 'server', ->
     env:
       PORT: process.env.PORT or 3000
 
-gulp.task 'default', ['clean', 'copy', 'css', 'js-dev', 'lint', 'index', 'server', 'watch']
+gulp.task 'default', ['clean', 'copy', 'css', 'js', 'lint', 'index', 'server', 'watch']
 
 gulp.task 'watch', ['copy'], ->
   livereload.listen()

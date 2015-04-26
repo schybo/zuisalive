@@ -11,6 +11,8 @@ autoprefixer = require 'autoprefixer-core'
 rimraf = require 'rimraf'
 eslint = require 'gulp-eslint'
 inject = require 'gulp-inject'
+bowerFiles = require 'main-bower-files'
+es = require 'event-stream'
 #runSequence = require('run-sequence')
 GLOBAL.Promise = (require 'es6-promise').Promise # to make gulp-postcss happy
 
@@ -65,11 +67,13 @@ webpack = (name, ext, watch) ->
 
 
 js = (watch) -> webpack('client', 'cjsx', watch)
+
+jsFiles = null
 gulp.task 'js', ->
-  js(false)
+  jsFiles = js(false)
 
 gulp.task 'js-dev', ->
-  js(true)
+  jsFiles = js(true)
 
 gulp.task 'lint', ->
   gulp.src("#{src_path}/public/js/*.js")
@@ -77,31 +81,49 @@ gulp.task 'lint', ->
   .pipe(eslint.format())
   .pipe(eslint.failOnError())
 
+cssFiles = null
 gulp.task 'css', ->
-  gulp.src("#{src_path}/#{styles_path}/styles.less")
+  cssFiles = gulp.src("#{src_path}/#{styles_path}/styles.less")
   .pipe(plumber())
   .pipe(less(
     paths: [components_path, modules_path]
   ))
   .on('error', err)
   .pipe(postcss([autoprefixer(browsers: ['last 2 versions', 'ie 8', 'ie 9'])]))
-  .pipe(gulp.dest("#{src_path}/#{styles_path}"))
+  .pipe(gulp.dest(dist_path + '/styles'))
 
 gulp.task 'index', ->
   target = gulp.src("#{src_path}/#{layouts_path}/index.html")
-  publicSources = gulp.src(["js/*.js", "styles/*.css"], {read: false, cwd: "#{src_path}/public"})
-  partialSource = gulp.src(["*.html"], {read: false, cwd: "#{src_path}/#{partials_path}"})
 
-  target.pipe(inject(publicSources))
-  .pipe(inject(partialSource))
+  # publicSources = gulp.src(["js/*.js", "styles/*.css"], {read: false, cwd: "#{src_path}/public"})
+  jsSources = gulp.src(["js/*.js"], {read: false, cwd: "#{src_path}/public"})
+  #partialSources = gulp.src(["partials/*.html"], {read: false, cwd: "#{src_path}/templates"})
+  partialSources = gulp.src(["#{src_path}/#{partials_path}/head/*.html"])
+  bowerSources = gulp.src(bowerFiles(), {read: false, base: './src/vendor'})
+
+  target
+  .pipe(inject(bowerSources, {name: 'bower', ignorePath: 'src'}))
+  .pipe(inject(es.merge(
+    cssFiles,
+    jsFiles
+  ), {ignorePath: 'dist'}))
+  # .pipe(inject(publicSources))
+  .pipe(inject(jsSources))
+  .pipe(inject(partialSources), {
+    starttag: '<!-- inject:head:{{ext}} -->',
+    transform: (filePath, file) ->
+      #return file contents as string 
+      return file.contents.toString('utf8')
+  })
   .pipe(gulp.dest(dist_path))
 
 gulp.task 'clean', ->
   rimraf.sync(dist_path)
 
 gulp.task 'copy', ->
-  gulp.src("#{src_path}/#{partials_path}/*.html").pipe(gulp.dest(dist_path))
+  gulp.src("#{src_path}/#{partials_path}/*.html").pipe(gulp.dest(dist_path + '/partials'))
   gulp.src("#{src_path}/public/**/*").pipe(gulp.dest(dist_path))
+  gulp.src(bowerFiles(), {read: false, base: './src/vendor'}).pipe(gulp.dest(dist_path + '/vendor'))
   gulp.src("#{semantic_path}/themes/default/assets/**/*").pipe(gulp.dest("#{dist_path}/themes/default/assets/"))
 
 gulp.task 'build', ['clean', 'copy', 'css', 'js', 'lint', 'index']
@@ -123,5 +145,5 @@ gulp.task 'watch', ['copy'], ->
   gulp.watch ["#{src_path}/templates/**/*.html"], ['copy']
 
 # Two step build for now
-gulp.task 'bp', ['clean', 'copy', 'css', 'js', 'lint']
-gulp.task 'launch', ['index', 'server', 'watch']
+gulp.task 'bp', ['clean', 'copy', 'css', 'js', 'lint', 'index']
+gulp.task 'launch', ['server', 'watch']

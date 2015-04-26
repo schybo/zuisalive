@@ -12,9 +12,9 @@ Web app starter template with React, React Router, ES6 (via Babel), CoffeeScript
 ### Getting Started ###
 
 1. Fork and/or clone
-2. Run ```npm install``` && `bower install`
+2. Run `npm install` && `bower install`
 3. Run `npm install -g coffee-script` if not installed
-4. Start the dev server by running ```$(npm bin)/gulp```
+4. Start the dev server by running `$(npm bin)/gulp`
 5. Visit http://localhost:3000
 6. Get to work!
 

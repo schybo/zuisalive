@@ -13,7 +13,12 @@ eslint = require 'gulp-eslint'
 inject = require 'gulp-inject'
 bowerFiles = require 'main-bower-files'
 es = require 'event-stream'
-#runSequence = require('run-sequence')
+#runSequence = require 'run-sequence'
+uglify = require 'gulp-uglify'
+rename = require 'gulp-rename'
+cssmin = require 'gulp-cssmin'
+# sourcemaps = require 'gulp-sourcemaps'
+concat = require 'gulp-concat'
 GLOBAL.Promise = (require 'es6-promise').Promise # to make gulp-postcss happy
 
 #**** Note must use double brackets to expand variables
@@ -25,7 +30,7 @@ js_path = 'public/js'
 layouts_path = 'templates/layouts'
 partials_path = 'templates/partials'
 views_path = 'templates/views'
-components_path = 'public/vendor'
+components_path = "#{src_path}/#{styles_path}"
 modules_path = 'node_modules'
 semantic_path = "#{modules_path}/semantic-ui-css"
 dist_path = 'dist'
@@ -85,29 +90,37 @@ cssFiles = null
 gulp.task 'css', ->
   cssFiles = gulp.src("#{src_path}/#{styles_path}/styles.less")
   .pipe(plumber())
+  # .pipe(sourcemaps.init())
   .pipe(less(
     paths: [components_path, modules_path]
   ))
   .on('error', err)
+  # .pipe(sourcemaps.write())
   .pipe(postcss([autoprefixer(browsers: ['last 2 versions', 'ie 8', 'ie 9'])]))
+  .pipe(cssmin())
+  .pipe(rename({suffix: '.min'}))
   .pipe(gulp.dest(dist_path + '/styles'))
+
+appJsFiles = null
+gulp.task 'appJs', ->
+  appJsFiles = gulp.src("#{src_path}/#{js_path}/*.js")
+  .pipe(concat('site.js'))
+  .pipe(uglify())
+  .pipe(rename({suffix: '.min'}))
+  .pipe(gulp.dest(dist_path + '/js/'))
 
 gulp.task 'index', ->
   target = gulp.src("#{src_path}/#{layouts_path}/index.html")
 
-  # publicSources = gulp.src(["js/*.js", "styles/*.css"], {read: false, cwd: "#{src_path}/public"})
-  jsSources = gulp.src(["js/*.js"], {read: false, cwd: "#{src_path}/public"})
-  #partialSources = gulp.src(["partials/*.html"], {read: false, cwd: "#{src_path}/templates"})
   partialSources = gulp.src(["#{src_path}/#{partials_path}/head/*.html"])
   bowerSources = gulp.src(bowerFiles(), {read: false, base: './src/vendor'})
 
   target
   .pipe(inject(bowerSources, {name: 'bower', ignorePath: 'src'}))
   .pipe(inject(es.merge(
-    cssFiles
+    cssFiles,
+    appJsFiles
   ), {ignorePath: 'dist'}))
-  # .pipe(inject(publicSources))
-  .pipe(inject(jsSources))
   .pipe(inject(partialSources, {
     starttag: '<!-- inject:head:{{ext}} -->',
     transform: (filePath, file) -> file.contents.toString('utf8')
@@ -119,11 +132,11 @@ gulp.task 'clean', ->
 
 gulp.task 'copy', ->
   gulp.src("#{src_path}/#{partials_path}/*.html").pipe(gulp.dest(dist_path + '/partials'))
-  gulp.src("#{src_path}/public/**/*").pipe(gulp.dest(dist_path))
+  # gulp.src("#{src_path}/public/**/*").pipe(gulp.dest(dist_path))
   gulp.src(bowerFiles(), {read: false, base: './src/vendor'}).pipe(gulp.dest(dist_path + '/vendor'))
   gulp.src("#{semantic_path}/themes/default/assets/**/*").pipe(gulp.dest("#{dist_path}/themes/default/assets/"))
 
-gulp.task 'build', ['clean', 'copy', 'css', 'js', 'lint', 'index']
+gulp.task 'build', ['clean', 'copy', 'css', 'appJs', 'js', 'lint', 'index']
 
 server_main = "./server.coffee"
 gulp.task 'server', ->
@@ -133,7 +146,7 @@ gulp.task 'server', ->
     env:
       PORT: process.env.PORT or 3000
 
-gulp.task 'default', ['clean', 'copy', 'css', 'js', 'lint', 'index', 'server', 'watch']
+gulp.task 'default', ['clean', 'copy', 'css', 'appJs', 'js', 'lint', 'index', 'server', 'watch']
 
 gulp.task 'watch', ['copy'], ->
   livereload.listen()

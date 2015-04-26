@@ -1,6 +1,6 @@
 {
-  "name": "react-express-template",
-  "description": "Web app starter template with React, React Router, ES6, CoffeeScript, Express/Node.js, Semantic-UI, Gulp and more.",
+  "name": "Zuisalive",
+  "description": "Visualizing data the fun way with React, React Router, ES6, CoffeeScript, Express/Node.js, Semantic-UI, Gulp and more.",
   "keywords": ["node", "express", "react", "es6", "coffeescript", "semantic-ui", "template", "boilerplate"],
   "logo": "https://facebook.github.io/react/img/logo.svg"
 }

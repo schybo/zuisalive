@@ -1,39 +1,32 @@
 ##Test Comment
-gulp                 = require 'gulp'
-gutil                = require 'gulp-util'
-livereload           = require 'gulp-livereload'
-nodemon              = require 'gulp-nodemon'
-plumber              = require 'gulp-plumber'
-gwebpack             = require 'gulp-webpack'
-less                 = require 'gulp-less'
-# postcss            = require 'gulp-postcss'
-# autoprefixer       = require 'autoprefixer-core'
-rimraf               = require 'rimraf'
-eslint               = require 'gulp-eslint'
-inject               = require 'gulp-inject'
-bowerFiles           = require 'main-bower-files'
-es                   = require 'event-stream'
-uglify               = require 'gulp-uglify'
-rename               = require 'gulp-rename'
-cssmin               = require 'gulp-cssmin'
-# sourcemaps         = require 'gulp-sourcemaps'
-# minifyCss          = require 'gulp-minify-css'
-concat               = require 'gulp-concat'
-size                 = require 'gulp-filesize'
-imagemin             = require 'gulp-imagemin'
-pngquant             = require 'imagemin-pngquant'
-changed              = require 'gulp-changed'
-LessPluginCleanCSS   = require 'less-plugin-clean-css'
-LessPluginAutoPrefix = require 'less-plugin-autoprefix'
-LessPluginMqPacker   = require 'less-plugin-group-css-media-queries'
-LessPluginDataUri    = require 'less-plugin-inline-urls'
-cleancss             = new LessPluginCleanCSS({ advanced: true, compatibility: 'ie9' })
-autoprefix           = new LessPluginAutoPrefix({ browsers: ['last 2 versions', 'ie 8', 'ie 9'] })
-mqpacker             = LessPluginMqPacker
-datauri              = LessPluginDataUri
-argv                 = (require 'yargs').argv
-gulpif               = require 'gulp-if'
-GLOBAL.Promise       = (require 'es6-promise').Promise # to make gulp-postcss happy
+gulp           = require 'gulp'
+gutil          = require 'gulp-util'
+livereload     = require 'gulp-livereload'
+nodemon        = require 'gulp-nodemon'
+plumber        = require 'gulp-plumber'
+gwebpack       = require 'gulp-webpack'
+less           = require 'gulp-less'
+postcss        = require 'gulp-postcss'
+autoprefixer   = require 'autoprefixer-core'
+rimraf         = require 'rimraf'
+eslint         = require 'gulp-eslint'
+inject         = require 'gulp-inject'
+bowerFiles     = require 'main-bower-files'
+es             = require 'event-stream'
+uglify         = require 'gulp-uglify'
+rename         = require 'gulp-rename'
+cssmin         = require 'gulp-cssmin'
+# sourcemaps   = require 'gulp-sourcemaps'
+concat         = require 'gulp-concat'
+size           = require 'gulp-filesize'
+imagemin       = require 'gulp-imagemin'
+pngquant       = require 'imagemin-pngquant'
+changed        = require 'gulp-changed'
+mqpacker       = require 'css-mqpacker'
+csswring       = require 'csswring'
+argv           = (require 'yargs').argv
+gulpif         = require 'gulp-if'
+GLOBAL.Promise = (require 'es6-promise').Promise # to make gulp-postcss happy
 
 #**** Note must use double brackets to expand variables
 
@@ -118,15 +111,19 @@ gulp.task 'img', ->
 cssFiles = null
 gulp.task 'css', ->
   cssFiles = gulp.src("#{src_path}/#{styles_path}/styles.less")
-  # .pipe(changed(dist_path + '/styles'))
+  .pipe(changed(dist_path + '/styles'))
   .pipe(size())
   .pipe(plumber())
-  # .pipe(sourcemaps.init())
   .pipe(less(
-    paths: [styles_partial_path],
-    plugins: [autoprefix, cleancss, mqpacker, datauri]
+    paths: [styles_partial_path]
   ))
   .on('error', err)
+  # .pipe(sourcemaps.init())
+  .pipe(postcss([
+    autoprefixer((browsers: ['last 2 versions', 'ie 8', 'ie 9'])),
+    mqpacker,
+    csswring
+  ]))
   # .pipe(sourcemaps.write())
   .pipe(rename({suffix: '.min'}))
   .pipe(gulp.dest(dist_path + '/styles'))

@@ -23,6 +23,7 @@
     "autoprefixer-core": "^5.1.8",
     "babel": "^5.0.8",
     "babel-core": "^5.0.8",
+    "babel-eslint": "^3.0.1",
     "babel-loader": "^5.0.0",
     "chalk": "^1.0.0",
     "coffee-loader": "^0.7.2",
@@ -30,10 +31,12 @@
     "coffee-script": "^1.9.0",
     "event-stream": "^3.3.0",
     "gulp": "^3.8.11",
+    "gulp-changed": "^1.2.1",
     "gulp-concat": "^2.5.2",
     "gulp-cssmin": "^0.1.7",
     "gulp-eslint": "^0.11.0",
     "gulp-filesize": "0.0.6",
+    "gulp-if": "^1.2.5",
     "gulp-imagemin": "^2.2.1",
     "gulp-inject": "^1.2.0",
     "gulp-less": "^3.0.3",
@@ -48,8 +51,13 @@
     "gulp-util": "^3.0.4",
     "gulp-webpack": "^1.4.0",
     "imagemin-pngquant": "^4.1.0",
+    "less-plugin-autoprefix": "^1.4.1",
+    "less-plugin-clean-css": "^1.5.0",
+    "less-plugin-group-css-media-queries": "^1.0.1",
+    "less-plugin-inline-urls": "^1.1.0",
+    "lodash.assign": "^3.1.0",
     "main-bower-files": "^2.7.0",
     "rimraf": "^2.3.2",
-    "run-sequence": "^1.1.0"
+    "yargs": "^3.8.0"
   }
 }

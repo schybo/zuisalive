@@ -12,7 +12,7 @@ Home = React.createClass
         <h1 className="ui header">
           <span>Get to work!</span>
           <div className="sub header">
-            Make sure to check out README.md for development notes.
+            Make sure to check out README.md for development notes. yeh cool
           </div>
         </h1>
       </div>

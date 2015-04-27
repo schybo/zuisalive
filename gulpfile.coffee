@@ -1,45 +1,55 @@
 ##Test Comment
-gulp = require 'gulp'
-gutil = require 'gulp-util'
-livereload = require 'gulp-livereload'
-nodemon = require 'gulp-nodemon'
-plumber = require 'gulp-plumber'
-gwebpack = require 'gulp-webpack'
-less = require 'gulp-less'
-postcss = require 'gulp-postcss'
-autoprefixer = require 'autoprefixer-core'
-rimraf = require 'rimraf'
-eslint = require 'gulp-eslint'
-inject = require 'gulp-inject'
-bowerFiles = require 'main-bower-files'
-es = require 'event-stream'
-#runSequence = require 'run-sequence'
-uglify = require 'gulp-uglify'
-rename = require 'gulp-rename'
-# cssmin = require 'gulp-cssmin'
-# sourcemaps = require 'gulp-sourcemaps'
-minifyCss = require 'gulp-minify-css'
-concat = require 'gulp-concat'
-size = require 'gulp-filesize'
-imagemin = require 'gulp-imagemin'
-pngquant = require 'imagemin-pngquant'
-GLOBAL.Promise = (require 'es6-promise').Promise # to make gulp-postcss happy
+gulp                 = require 'gulp'
+gutil                = require 'gulp-util'
+livereload           = require 'gulp-livereload'
+nodemon              = require 'gulp-nodemon'
+plumber              = require 'gulp-plumber'
+gwebpack             = require 'gulp-webpack'
+less                 = require 'gulp-less'
+# postcss            = require 'gulp-postcss'
+# autoprefixer       = require 'autoprefixer-core'
+rimraf               = require 'rimraf'
+eslint               = require 'gulp-eslint'
+inject               = require 'gulp-inject'
+bowerFiles           = require 'main-bower-files'
+es                   = require 'event-stream'
+uglify               = require 'gulp-uglify'
+rename               = require 'gulp-rename'
+cssmin               = require 'gulp-cssmin'
+# sourcemaps         = require 'gulp-sourcemaps'
+# minifyCss          = require 'gulp-minify-css'
+concat               = require 'gulp-concat'
+size                 = require 'gulp-filesize'
+imagemin             = require 'gulp-imagemin'
+pngquant             = require 'imagemin-pngquant'
+changed              = require 'gulp-changed'
+LessPluginCleanCSS   = require 'less-plugin-clean-css'
+LessPluginAutoPrefix = require 'less-plugin-autoprefix'
+LessPluginMqPacker   = require 'less-plugin-group-css-media-queries'
+LessPluginDataUri    = require 'less-plugin-inline-urls'
+cleancss             = new LessPluginCleanCSS({ advanced: true, compatibility: 'ie9' })
+autoprefix           = new LessPluginAutoPrefix({ browsers: ['last 2 versions', 'ie 8', 'ie 9'] })
+mqpacker             = LessPluginMqPacker
+datauri              = LessPluginDataUri
+argv                 = (require 'yargs').argv
+gulpif               = require 'gulp-if'
+GLOBAL.Promise       = (require 'es6-promise').Promise # to make gulp-postcss happy
 
 #**** Note must use double brackets to expand variables
 
 #***** Paths *********#
-src_path = 'src'
-styles_path = 'public/styles'
+src_path            = 'src'
+styles_path         = 'public/styles'
 styles_partial_path = "#{src_path}/#{styles_path}/partials"
-js_path = 'public/js'
-img_path = 'public/images'
-layouts_path = 'templates/layouts'
-partials_path = 'templates/partials'
-views_path = 'templates/views'
-vendor_path = "#{src_path}/vendor"
-modules_path = 'node_modules'
-semantic_path = "#{modules_path}/semantic-ui-css"
-dist_path = 'dist'
+js_path             = 'public/js'
+img_path            = 'public/images'
+layouts_path        = 'templates/layouts'
+partials_path       = 'templates/partials'
+views_path          = 'templates/views'
+vendor_path         = "#{src_path}/vendor"
+modules_path        = 'node_modules'
+semantic_path       = "#{modules_path}/semantic-ui-css"
+dist_path           = 'dist'
 
 err = (x...) -> gutil.log(x...); gutil.beep(x...)
 
@@ -79,23 +89,25 @@ webpack = (name, ext, watch) ->
 
 js = (watch) -> webpack('client', 'cjsx', watch)
 
-# jsFiles = null
 gulp.task 'jsClient', ->
   js(false)
 
 gulp.task 'jsClient-dev', ->
   js(true)
 
+
+# Seperate from js so js can still compile
 gulp.task 'lint', ->
   gulp.src("#{src_path}/#{js_path}/*.js")
+  .pipe(plumber())
   .pipe(eslint())
   .pipe(eslint.format())
   .pipe(eslint.failOnError())
-  .on('error', err)
 
 imgFiles = null
 gulp.task 'img', ->
   imgFiles = gulp.src("#{src_path}/#{img_path}/**/*")
+  .pipe(changed(dist_path + '/images'))
   .pipe(imagemin({
       progressive: true,
       svgoPlugins: [{removeViewBox: false}],
@@ -106,16 +118,16 @@ gulp.task 'img', ->
 cssFiles = null
 gulp.task 'css', ->
   cssFiles = gulp.src("#{src_path}/#{styles_path}/styles.less")
+  # .pipe(changed(dist_path + '/styles'))
+  .pipe(size())
   .pipe(plumber())
   # .pipe(sourcemaps.init())
   .pipe(less(
-    paths: [styles_partial_path]
+    paths: [styles_partial_path],
+    plugins: [autoprefix, cleancss, mqpacker, datauri]
   ))
   .on('error', err)
   # .pipe(sourcemaps.write())
-  .pipe(postcss([autoprefixer(browsers: ['last 2 versions', 'ie 8', 'ie 9'])]))
-  .pipe(size())
-  .pipe(minifyCss({compatibility: 'ie8'}))
   .pipe(rename({suffix: '.min'}))
   .pipe(gulp.dest(dist_path + '/styles'))
   .pipe(size())
@@ -127,33 +139,32 @@ gulp.task 'js', ->
   .pipe(size())
   .pipe(uglify())
   .pipe(rename({suffix: '.min'}))
-  .pipe(gulp.dest(dist_path + '/js/'))
+  .pipe(gulp.dest(dist_path + '/js'))
   .pipe(size())
 
-# Find out how to use the min files
 cssVendorFiles = null
 gulp.task 'cssVendor', ->
   cssVendorFiles = gulp.src(bowerFiles('**/*.css'), {base: './src/vendor'})
   .pipe(concat('vendor.css'))
-  # .pipe(cssmin())
-  # .pipe(rename({suffix: '.min'}))
+  .pipe(gulpif(argv.production, cssmin()))
+  .pipe(gulpif(argv.production, rename({suffix: '.min'})))
   .pipe(gulp.dest(dist_path + '/vendor/'))
   .pipe(size())
 
-# Find out how to use the min files
+# KIT: See if they allow choice of .min files eventually
+
 jsVendorFiles = null
 gulp.task 'jsVendor', ->
   jsVendorFiles = gulp.src(bowerFiles('**/*.js'), {base: './src/vendor'})
   .pipe(concat('vendor.js'))
-  # .pipe(uglify())
-  # .pipe(rename({suffix: '.min'}))
+  .pipe(gulpif(argv.production, uglify()))
+  .pipe(gulpif(argv.production, rename({suffix: '.min'})))
   .pipe(gulp.dest(dist_path + '/vendor/'))
   .pipe(size())
 
 gulp.task 'index', ->
   target = gulp.src("#{src_path}/#{layouts_path}/index.html")
   partialSources = gulp.src(["#{src_path}/#{partials_path}/head/*.html"])
-  # bowerSources = gulp.src(bowerFiles(), {read: false, base: './src/vendor'})
 
   target
   .pipe(inject(es.merge(
@@ -174,7 +185,6 @@ gulp.task 'clean', ->
   rimraf.sync(dist_path)
 
 gulp.task 'copy', ->
-  # gulp.src(bowerFiles(), {read: false, base: './src/vendor'}).pipe(gulp.dest(dist_path + '/vendor'))
   gulp.src("#{src_path}/public/fonts/*").pipe(gulp.dest(dist_path + '/fonts'))
   gulp.src("#{semantic_path}/themes/default/assets/**/*").pipe(gulp.dest("#{dist_path}/themes/default/assets/"))
 
@@ -194,4 +204,6 @@ gulp.task 'watch', ['copy'], ->
   livereload.listen()
   gulp.watch(["#{dist_path}/**/*"]).on('change', livereload.changed)
   gulp.watch ["#{src_path}/#{styles_path}/**/*.less"], ['css']
+  gulp.watch ["#{src_path}/#{js_path}/**/*.js"], ['js', 'lint']
+  gulp.watch ["#{src_path}/#{img_path}/**/*"], ['img']
   gulp.watch ["#{src_path}/templates/**/*.html"], ['copy']

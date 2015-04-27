@@ -16,9 +16,13 @@ es = require 'event-stream'
 #runSequence = require 'run-sequence'
 uglify = require 'gulp-uglify'
 rename = require 'gulp-rename'
-cssmin = require 'gulp-cssmin'
+# cssmin = require 'gulp-cssmin'
 # sourcemaps = require 'gulp-sourcemaps'
+minifyCss = require 'gulp-minify-css'
 concat = require 'gulp-concat'
+size = require 'gulp-filesize'
+imagemin = require 'gulp-imagemin'
+pngquant = require 'imagemin-pngquant'
 GLOBAL.Promise = (require 'es6-promise').Promise # to make gulp-postcss happy
 
 #**** Note must use double brackets to expand variables
@@ -28,6 +32,7 @@ src_path = 'src'
 styles_path = 'public/styles'
 styles_partial_path = "#{src_path}/#{styles_path}/partials"
 js_path = 'public/js'
+img_path = 'public/images'
 layouts_path = 'templates/layouts'
 partials_path = 'templates/partials'
 views_path = 'templates/views'
@@ -82,10 +87,21 @@ gulp.task 'jsClient-dev', ->
   js(true)
 
 gulp.task 'lint', ->
-  gulp.src("#{src_path}/public/js/*.js")
+  gulp.src("#{src_path}/#{js_path}/*.js")
   .pipe(eslint())
   .pipe(eslint.format())
   .pipe(eslint.failOnError())
+  .on('error', err)
+
+imgFiles = null
+gulp.task 'img', ->
+  imgFiles = gulp.src("#{src_path}/#{img_path}/**/*")
+  .pipe(imagemin({
+      progressive: true,
+      svgoPlugins: [{removeViewBox: false}],
+      use: [pngquant()]
+  }))
+  .pipe(gulp.dest(dist_path + '/images'));
 
 cssFiles = null
 gulp.task 'css', ->
@@ -98,17 +114,21 @@ gulp.task 'css', ->
   .on('error', err)
   # .pipe(sourcemaps.write())
   .pipe(postcss([autoprefixer(browsers: ['last 2 versions', 'ie 8', 'ie 9'])]))
-  .pipe(cssmin())
+  .pipe(size())
+  .pipe(minifyCss({compatibility: 'ie8'}))
   .pipe(rename({suffix: '.min'}))
   .pipe(gulp.dest(dist_path + '/styles'))
+  .pipe(size())
 
 jsFiles = null
 gulp.task 'js', ->
   jsFiles = gulp.src("#{src_path}/#{js_path}/*.js")
   .pipe(concat('site.js'))
+  .pipe(size())
   .pipe(uglify())
   .pipe(rename({suffix: '.min'}))
   .pipe(gulp.dest(dist_path + '/js/'))
+  .pipe(size())
 
 # Find out how to use the min files
 cssVendorFiles = null
@@ -118,6 +138,7 @@ gulp.task 'cssVendor', ->
   # .pipe(cssmin())
   # .pipe(rename({suffix: '.min'}))
   .pipe(gulp.dest(dist_path + '/vendor/'))
+  .pipe(size())
 
 # Find out how to use the min files
 jsVendorFiles = null
@@ -127,6 +148,7 @@ gulp.task 'jsVendor', ->
   # .pipe(uglify())
   # .pipe(rename({suffix: '.min'}))
   .pipe(gulp.dest(dist_path + '/vendor/'))
+  .pipe(size())
 
 gulp.task 'index', ->
   target = gulp.src("#{src_path}/#{layouts_path}/index.html")
@@ -152,11 +174,11 @@ gulp.task 'clean', ->
   rimraf.sync(dist_path)
 
 gulp.task 'copy', ->
-  # gulp.src("#{src_path}/public/**/*").pipe(gulp.dest(dist_path))
   # gulp.src(bowerFiles(), {read: false, base: './src/vendor'}).pipe(gulp.dest(dist_path + '/vendor'))
+  gulp.src("#{src_path}/public/fonts/*").pipe(gulp.dest(dist_path + '/fonts'))
   gulp.src("#{semantic_path}/themes/default/assets/**/*").pipe(gulp.dest("#{dist_path}/themes/default/assets/"))
 
-gulp.task 'build', ['clean', 'copy', 'css', 'js', 'cssVendor', 'jsVendor', 'jsClient', 'lint', 'index']
+gulp.task 'build', ['clean', 'copy', 'css', 'img', 'js', 'cssVendor', 'jsVendor', 'jsClient', 'lint', 'index']
 
 server_main = "./server.coffee"
 gulp.task 'server', ->
@@ -166,7 +188,7 @@ gulp.task 'server', ->
     env:
       PORT: process.env.PORT or 3000
 
-gulp.task 'default', ['clean', 'copy', 'css', 'js', 'cssVendor', 'jsVendor', 'jsClient-dev', 'lint', 'index', 'server', 'watch']
+gulp.task 'default', ['clean', 'copy', 'css', 'img', 'js', 'cssVendor', 'jsVendor', 'jsClient-dev', 'lint', 'index', 'server', 'watch']
 
 gulp.task 'watch', ['copy'], ->
   livereload.listen()

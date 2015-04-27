@@ -22,10 +22,11 @@ size           = require 'gulp-filesize'
 imagemin       = require 'gulp-imagemin'
 pngquant       = require 'imagemin-pngquant'
 changed        = require 'gulp-changed'
+# uncss        = require 'gulp-uncss'
 mqpacker       = require 'css-mqpacker'
 csswring       = require 'csswring'
-argv           = (require 'yargs').argv
 gulpif         = require 'gulp-if'
+argv           = (require 'yargs').argv
 GLOBAL.Promise = (require 'es6-promise').Promise # to make gulp-postcss happy
 
 #**** Note must use double brackets to expand variables
@@ -43,6 +44,7 @@ vendor_path         = "#{src_path}/vendor"
 modules_path        = 'node_modules'
 semantic_path       = "#{modules_path}/semantic-ui-css"
 dist_path           = 'dist'
+# html_path           = ["#{src_path}/#{partials_path}/head/*.html", '#{src_path}/#{templates_path}/*.html']
 
 err = (x...) -> gutil.log(x...); gutil.beep(x...)
 
@@ -88,7 +90,6 @@ gulp.task 'jsClient', ->
 gulp.task 'jsClient-dev', ->
   js(true)
 
-
 # Seperate from js so js can still compile
 gulp.task 'lint', ->
   gulp.src("#{src_path}/#{js_path}/*.js")
@@ -118,6 +119,9 @@ gulp.task 'css', ->
     paths: [styles_partial_path]
   ))
   .on('error', err)
+  # .pipe(uncss({
+  #   html: html_path
+  # }))
   # .pipe(sourcemaps.init())
   .pipe(postcss([
     autoprefixer((browsers: ['last 2 versions', 'ie 8', 'ie 9'])),

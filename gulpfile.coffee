@@ -102,11 +102,11 @@ imgFiles = null
 gulp.task 'img', ->
   imgFiles = gulp.src("#{src_path}/#{img_path}/**/*")
   .pipe(changed(dist_path + '/images'))
-  .pipe(imagemin({
+  .pipe(gulpif(argv.production, imagemin({
       progressive: true,
       svgoPlugins: [{removeViewBox: false}],
       use: [pngquant()]
-  }))
+  })))
   .pipe(gulp.dest(dist_path + '/images'));
 
 cssFiles = null
@@ -207,4 +207,4 @@ gulp.task 'watch', ['copy'], ->
   gulp.watch ["#{src_path}/#{styles_path}/**/*.less"], ['css']
   gulp.watch ["#{src_path}/#{js_path}/**/*.js"], ['js', 'lint']
   gulp.watch ["#{src_path}/#{img_path}/**/*"], ['img']
-  gulp.watch ["#{src_path}/templates/**/*.html"], ['copy']
+  # gulp.watch ["#{src_path}/templates/**/*.html"], ['index']

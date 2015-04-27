@@ -25,5 +25,10 @@
   "devDependencies": {},
   "resolutions": {
     "d3": "~3.5.5"
+  },
+  "overrides": {
+      "trianglify": {
+          "main": "dist/trianglify.min.js"
+      }
   }
 }

@@ -4,7 +4,6 @@ gutil          = require 'gulp-util'
 livereload     = require 'gulp-livereload'
 nodemon        = require 'gulp-nodemon'
 plumber        = require 'gulp-plumber'
-gwebpack       = require 'gulp-webpack'
 less           = require 'gulp-less'
 postcss        = require 'gulp-postcss'
 autoprefixer   = require 'autoprefixer-core'
@@ -22,10 +21,11 @@ size           = require 'gulp-filesize'
 imagemin       = require 'gulp-imagemin'
 pngquant       = require 'imagemin-pngquant'
 changed        = require 'gulp-changed'
-# uncss        = require 'gulp-uncss'
+uncss          = require 'gulp-uncss'
 mqpacker       = require 'css-mqpacker'
 csswring       = require 'csswring'
 gulpif         = require 'gulp-if'
+jade           = require 'gulp-jade'
 argv           = (require 'yargs').argv
 GLOBAL.Promise = (require 'es6-promise').Promise # to make gulp-postcss happy
 
@@ -44,51 +44,12 @@ vendor_path         = "#{src_path}/vendor"
 modules_path        = 'node_modules'
 semantic_path       = "#{modules_path}/semantic-ui-css"
 dist_path           = 'dist'
-# html_path           = ["#{src_path}/#{partials_path}/head/*.html", '#{src_path}/#{templates_path}/*.html']
+html_path           = ["#{src_path}/#{partials_path}/head/*.html", '#{src_path}/#{templates_path}/*.html']
 
 err = (x...) -> gutil.log(x...); gutil.beep(x...)
 
-webpack = (name, ext, watch) ->
-  options =
-#    bail: true
-    watch: watch
-    cache: true
-    devtool: "source-map"
-    output:
-      filename: "#{name}.js"
-      sourceMapFilename: "[file].map"
-    resolve:
-      extensions: ["", ".webpack.js", ".web.js", ".js", ".jsx", ".coffee", ".cjsx"]
-      modulesDirectories: [vendor_path, modules_path]
-    module:
-      loaders: [
-        {
-          test: /\.coffee$/
-          loader: "coffee-loader"
-        }
-        {
-          test: [/\.js$/, /\.jsx$/]
-          exclude: [new RegExp(modules_path), new RegExp(vendor_path)]
-          loader: "babel-loader"
-        }
-        {
-          test: /\.cjsx$/
-          loader: "transform?coffee-reactify"
-        }
-      ]
-
-  gulp.src("#{src_path}/**/#{name}.#{ext}")
-  .pipe(gwebpack(options))
-  .pipe(gulp.dest(dist_path))
-
-
-js = (watch) -> webpack('client', 'cjsx', watch)
-
-gulp.task 'jsClient', ->
-  js(false)
-
-gulp.task 'jsClient-dev', ->
-  js(true)
+# Cannot run more than one uncss at once, but then if I wait till 'css' done for 'cssVednor' index task fails
+# Issue: https://github.com/giakki/uncss/issues/136
 
 # Seperate from js so js can still compile
 gulp.task 'lint', ->
@@ -136,6 +97,7 @@ gulp.task 'css', ->
 jsFiles = null
 gulp.task 'js', ->
   jsFiles = gulp.src("#{src_path}/#{js_path}/*.js")
+  .pipe(changed(dist_path + '/js'))
   .pipe(concat('site.js'))
   .pipe(size())
   .pipe(uglify())
@@ -146,10 +108,14 @@ gulp.task 'js', ->
 cssVendorFiles = null
 gulp.task 'cssVendor', ->
   cssVendorFiles = gulp.src(bowerFiles('**/*.css'), {base: './src/vendor'})
+  .pipe(changed(dist_path + '/vendor'))
   .pipe(concat('vendor.css'))
-  .pipe(gulpif(argv.production, cssmin()))
+  .pipe(uncss({
+    html: html_path
+  }))
+  .pipe(gulpif(argv.production, cssmin({ keepSpecialComments: 0})))
   .pipe(gulpif(argv.production, rename({suffix: '.min'})))
-  .pipe(gulp.dest(dist_path + '/vendor/'))
+  .pipe(gulp.dest(dist_path + '/vendor'))
   .pipe(size())
 
 # KIT: See if they allow choice of .min files eventually
@@ -157,17 +123,20 @@ gulp.task 'cssVendor', ->
 jsVendorFiles = null
 gulp.task 'jsVendor', ->
   jsVendorFiles = gulp.src(bowerFiles('**/*.js'), {base: './src/vendor'})
+  .pipe(changed(dist_path + '/vendor'))
   .pipe(concat('vendor.js'))
   .pipe(gulpif(argv.production, uglify()))
   .pipe(gulpif(argv.production, rename({suffix: '.min'})))
-  .pipe(gulp.dest(dist_path + '/vendor/'))
+  .pipe(gulp.dest(dist_path + '/vendor'))
   .pipe(size())
 
 gulp.task 'index', ->
-  target = gulp.src("#{src_path}/#{layouts_path}/index.html")
-  partialSources = gulp.src(["#{src_path}/#{partials_path}/head/*.html"])
+  target = gulp.src("#{src_path}/#{layouts_path}/index.jade")
+  # headPartialSources = gulp.src(["#{src_path}/#{partials_path}/head/*.html"])
 
   target
+  .pipe(plumber())
+  .pipe(jade())
   .pipe(inject(es.merge(
     cssVendorFiles,
     jsVendorFiles
@@ -176,10 +145,10 @@ gulp.task 'index', ->
     cssFiles,
     jsFiles
   ), {ignorePath: 'dist'}))
-  .pipe(inject(partialSources, {
-    starttag: '<!-- inject:head:{{ext}} -->',
-    transform: (filePath, file) -> file.contents.toString('utf8')
-  }))
+  # .pipe(inject(headPartialSources, {
+  #   starttag: '<!-- inject:head:{{ext}} -->',
+  #   transform: (filePath, file) -> file.contents.toString('utf8')
+  # }))
   .pipe(gulp.dest(dist_path))
 
 gulp.task 'clean', ->
@@ -187,9 +156,8 @@ gulp.task 'clean', ->
 
 gulp.task 'copy', ->
   gulp.src("#{src_path}/public/fonts/*").pipe(gulp.dest(dist_path + '/fonts'))
-  gulp.src("#{semantic_path}/themes/default/assets/**/*").pipe(gulp.dest("#{dist_path}/themes/default/assets/"))
 
-gulp.task 'build', ['clean', 'copy', 'css', 'img', 'js', 'cssVendor', 'jsVendor', 'jsClient', 'lint', 'index']
+gulp.task 'build', ['clean', 'copy', 'css', 'img', 'js', 'cssVendor', 'jsVendor', 'lint', 'index']
 
 server_main = "./server.coffee"
 gulp.task 'server', ->
@@ -199,7 +167,7 @@ gulp.task 'server', ->
     env:
       PORT: process.env.PORT or 3000
 
-gulp.task 'default', ['clean', 'copy', 'css', 'img', 'js', 'cssVendor', 'jsVendor', 'jsClient-dev', 'lint', 'index', 'server', 'watch']
+gulp.task 'default', ['clean', 'copy', 'css', 'img', 'js', 'cssVendor', 'jsVendor', 'lint', 'index', 'server', 'watch']
 
 gulp.task 'watch', ['copy'], ->
   livereload.listen()
@@ -207,4 +175,4 @@ gulp.task 'watch', ['copy'], ->
   gulp.watch ["#{src_path}/#{styles_path}/**/*.less"], ['css']
   gulp.watch ["#{src_path}/#{js_path}/**/*.js"], ['js', 'lint']
   gulp.watch ["#{src_path}/#{img_path}/**/*"], ['img']
-  # gulp.watch ["#{src_path}/templates/**/*.html"], ['index']
+  gulp.watch ["#{src_path}/templates/**/*"], ['css', 'js', 'cssVendor', 'jsVendor', 'index']

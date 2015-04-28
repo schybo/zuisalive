@@ -68,7 +68,8 @@ gulp.task 'img', ->
       svgoPlugins: [{removeViewBox: false}],
       use: [pngquant()]
   })))
-  .pipe(gulp.dest(dist_path + '/images'));
+  .pipe(gulp.dest(dist_path + '/images'))
+  .pipe(livereload())
 
 cssFiles = null
 gulp.task 'css', ->
@@ -93,6 +94,7 @@ gulp.task 'css', ->
   .pipe(rename({suffix: '.min'}))
   .pipe(gulp.dest(dist_path + '/styles'))
   .pipe(size())
+  .pipe(livereload())
 
 jsFiles = null
 gulp.task 'js', ->
@@ -104,6 +106,7 @@ gulp.task 'js', ->
   .pipe(rename({suffix: '.min'}))
   .pipe(gulp.dest(dist_path + '/js'))
   .pipe(size())
+  .pipe(livereload())
 
 cssVendorFiles = null
 gulp.task 'cssVendor', ->
@@ -150,6 +153,7 @@ gulp.task 'index', ->
   #   transform: (filePath, file) -> file.contents.toString('utf8')
   # }))
   .pipe(gulp.dest(dist_path))
+  .pipe(livereload())
 
 gulp.task 'clean', ->
   rimraf.sync(dist_path)
@@ -169,7 +173,7 @@ gulp.task 'server', ->
 
 gulp.task 'default', ['clean', 'copy', 'css', 'img', 'js', 'cssVendor', 'jsVendor', 'lint', 'index', 'server', 'watch']
 
-gulp.task 'watch', ['copy'], ->
+gulp.task 'watch', ->
   livereload.listen()
   gulp.watch(["#{dist_path}/**/*"]).on('change', livereload.changed)
   gulp.watch ["#{src_path}/#{styles_path}/**/*.less"], ['css']

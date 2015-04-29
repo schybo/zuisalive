@@ -26,6 +26,7 @@ mqpacker       = require 'css-mqpacker'
 csswring       = require 'csswring'
 gulpif         = require 'gulp-if'
 jade           = require 'gulp-jade'
+favicons       = require 'gulp-favicons'
 argv           = (require 'yargs').argv
 GLOBAL.Promise = (require 'es6-promise').Promise # to make gulp-postcss happy
 
@@ -40,6 +41,8 @@ img_path            = 'public/images'
 layouts_path        = 'templates/layouts'
 partials_path       = 'templates/partials'
 views_path          = 'templates/views'
+favicon_path        = "#{src_path}/#{img_path}/favicon/favicon.png"
+favicon_html_path   = "#{src_path}/#{partials_path}/head/favicon.html"
 vendor_path         = "#{src_path}/vendor"
 modules_path        = 'node_modules'
 semantic_path       = "#{modules_path}/semantic-ui-css"
@@ -48,9 +51,6 @@ html_path           = ["#{src_path}/#{partials_path}/head/*.html", '#{src_path}/
 
 err = (x...) -> gutil.log(x...); gutil.beep(x...)
 
-# Cannot run more than one uncss at once, but then if I wait till 'css' done for 'cssVednor' index task fails
-# Issue: https://github.com/giakki/uncss/issues/136
-
 # Seperate from js so js can still compile
 gulp.task 'lint', ->
   gulp.src("#{src_path}/#{js_path}/*.js")
@@ -58,6 +58,28 @@ gulp.task 'lint', ->
   .pipe(eslint())
   .pipe(eslint.format())
   .pipe(eslint.failOnError())
+
+
+# Html path not working, will put manually
+# Don't put in dist, not a creation task and will get overwritten
+gulp.task 'favicon', ->
+    gulp.src(favicon_path)
+        .pipe(favicons({
+            files: { iconsPath: 'images/favicon' },
+            settings: {
+              appName: 'Zuisalive',
+              appDescription: 'Visualizing data the easy way',
+              background: '#fdac68'
+              developer: 'Brent Scheibelhut',
+              developerURL: 'https://brentscheibelhut.com',
+              version: 0.1,
+              url: 'lab.schybo.com/zuisalive',
+              vinylMode: true
+            }
+        }, (code) ->
+            console.log(code)
+        ))
+        .pipe(gulp.dest("#{src_path}/#{img_path}/favicon/"))
 
 imgFiles = null
 gulp.task 'img', ->
@@ -71,6 +93,8 @@ gulp.task 'img', ->
   .pipe(gulp.dest(dist_path + '/images'))
   .pipe(livereload())
 
+# Cannot run more than one uncss at once, but then if I wait till 'css' done for 'cssVendor' index task fails
+# Issue: https://github.com/giakki/uncss/issues/136
 cssFiles = null
 gulp.task 'css', ->
   cssFiles = gulp.src("#{src_path}/#{styles_path}/styles.less")

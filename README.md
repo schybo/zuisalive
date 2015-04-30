@@ -9,6 +9,10 @@ Visualizing data the easy way!
 
 Web app starter template with React, React Router, ES6 (via Babel), CoffeeScript, Express/Node.js, Semantic-UI, Gulp and more.
 
+**Do not that `heroku config:set NPM_CONFIG_PRODUCTION=false` since we want to install devDependencies too.**
+
+Not release build from the dist folder. Will get to it.
+
 ### Getting Started ###
 
 1. Fork and/or clone

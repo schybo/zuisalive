@@ -1,0 +1,1 @@
+jQuery("#homeHeader").fitText(1.1);

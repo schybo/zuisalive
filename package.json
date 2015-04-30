@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "postinstall": "bower install && gulp build"
+    "postinstall": "bower cache clean && bower install && gulp build"
   },
   "engines": {
     "node": "0.10.x",

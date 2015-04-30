@@ -185,7 +185,7 @@ gulp.task 'clean', ->
 gulp.task 'copy', ->
   gulp.src("#{src_path}/public/fonts/*").pipe(gulp.dest(dist_path + '/fonts'))
 
-gulp.task 'build', ['clean', 'copy', 'css', 'img', 'js', 'cssVendor', 'jsVendor', 'lint', 'index']
+gulp.task 'build', ['clean', 'copy', 'css', 'img', 'js', 'cssVendor', 'jsVendor', 'index']
 
 server_main = "./server.coffee"
 gulp.task 'server', ->
@@ -195,7 +195,7 @@ gulp.task 'server', ->
     env:
       PORT: process.env.PORT or 3000
 
-gulp.task 'default', ['clean', 'copy', 'css', 'img', 'js', 'cssVendor', 'jsVendor', 'lint', 'index', 'server', 'watch']
+gulp.task 'default', ['clean', 'copy', 'css', 'img', 'js', 'cssVendor', 'jsVendor', 'index', 'server', 'watch']
 
 gulp.task 'watch', ->
   livereload.listen()

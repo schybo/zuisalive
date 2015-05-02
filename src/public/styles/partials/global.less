@@ -4,6 +4,7 @@ html, body {
   margin: 0 0;
   padding: 0 0;
   text-align: center;
+  background: @white;
 }
 
 canvas {
@@ -11,8 +12,36 @@ canvas {
   height: 100%;
 }
 
+section {
+	margin-top: 50px;
+
+	&:first-child {
+		margin-top: 0px;
+	}
+
+	&:nth-child(even) {
+		background: @light-grey;
+	}
+
+	&:nth-child(odd) {
+		background: @white;
+	}
+}
+
+.ui.grid > .row {
+	padding-top: 5rem
+}
+
 #trianglifyArea {
 	height: 100%;
+}
+
+#chart {
+	height: 400px;
+}
+
+#chart2 {
+	height: 400px;
 }
 
 .nexa-rust {

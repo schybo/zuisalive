@@ -53,6 +53,11 @@ Will get around to creating a branch just for distributions
 * The main stylesheet entry point is styles.less.
 * The server entry point is server.coffee.
 
+### Development Docs ###
+* FontAwesome currently being used. Docs found [here](http://fortawesome.github.io/Font-Awesome/examples/#)
+* Semantic UI currrently being used. Docs found [here](http://semantic-ui.com/collections/grid.html)
+* NVD3 currently being used. Examples and Docs found [here](http://nvd3.org/examples/stackedArea.html)
+
 ### LiveReload ###
 
 Install a live reload plugin for your browser (e.g. [RemoteLiveReload for Chrome](https://chrome.google.com/webstore/detail/remotelivereload/jlppknnillhjgiengoigajegdpieppei)) to instantly see your changes in the browser when a client side file (cjsx/coffee/jsx/js/less/css/html) changes.

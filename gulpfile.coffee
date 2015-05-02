@@ -27,6 +27,7 @@ csswring       = require 'csswring'
 gulpif         = require 'gulp-if'
 jade           = require 'gulp-jade'
 favicons       = require 'gulp-favicons'
+runSequence    = require 'run-sequence'
 argv           = (require 'yargs').argv
 GLOBAL.Promise = (require 'es6-promise').Promise # to make gulp-postcss happy
 
@@ -47,7 +48,7 @@ vendor_path         = "#{src_path}/vendor"
 modules_path        = 'node_modules'
 semantic_path       = "#{modules_path}/semantic-ui-css"
 dist_path           = 'dist'
-html_path           = ["#{src_path}/#{partials_path}/head/*.html", '#{src_path}/#{templates_path}/*.html']
+html_path           = ["#{src_path}/templates/layouts/index.html"]
 
 err = (x...) -> gutil.log(x...); gutil.beep(x...)
 
@@ -132,14 +133,23 @@ gulp.task 'js', ->
   .pipe(size())
   .pipe(livereload())
 
+# Need to run so uncss has some html to base if off of
+gulp.task 'html', ->
+  target = gulp.src("#{src_path}/#{layouts_path}/index.jade")
+
+  target
+  .pipe(plumber())
+  .pipe(jade())
+  .pipe(gulp.dest("#{src_path}/#{layouts_path}/"))
+
 cssVendorFiles = null
 gulp.task 'cssVendor', ->
   cssVendorFiles = gulp.src(bowerFiles('**/*.css'), {base: './src/vendor'})
   .pipe(changed(dist_path + '/vendor'))
   .pipe(concat('vendor.css'))
-  .pipe(uncss({
-    html: html_path
-  }))
+  # .pipe(uncss({
+  #   html: html_path
+  # }))
   .pipe(gulpif(argv.production, cssmin({ keepSpecialComments: 0})))
   .pipe(gulpif(argv.production, rename({suffix: '.min'})))
   .pipe(gulp.dest(dist_path + '/vendor'))
@@ -161,6 +171,7 @@ gulp.task 'index', ->
   target = gulp.src("#{src_path}/#{layouts_path}/index.jade")
   # headPartialSources = gulp.src(["#{src_path}/#{partials_path}/head/*.html"])
 
+  # Don't have to use jade converter here if use already converted, but keeping just in case
   target
   .pipe(plumber())
   .pipe(jade())
@@ -184,8 +195,10 @@ gulp.task 'clean', ->
 
 gulp.task 'copy', ->
   gulp.src("#{src_path}/public/fonts/*").pipe(gulp.dest(dist_path + '/fonts'))
+  gulp.src("#{src_path}/public/data/*").pipe(gulp.dest(dist_path + '/data'))
 
-gulp.task 'build', ['clean', 'copy', 'css', 'img', 'js', 'cssVendor', 'jsVendor', 'index']
+gulp.task 'build', ->
+  runSequence('html', ['clean', 'copy', 'css', 'img', 'js', 'cssVendor', 'jsVendor', 'index'])
 
 server_main = "./server.coffee"
 gulp.task 'server', ->
@@ -195,12 +208,15 @@ gulp.task 'server', ->
     env:
       PORT: process.env.PORT or 3000
 
-gulp.task 'default', ['clean', 'copy', 'css', 'img', 'js', 'cssVendor', 'jsVendor', 'index', 'server', 'watch']
+gulp.task 'default', ->
+  runSequence('html', ['clean', 'copy', 'css', 'img', 'js', 'cssVendor', 'jsVendor', 'index', 'server', 'watch'])
 
 gulp.task 'watch', ->
   livereload.listen()
   gulp.watch(["#{dist_path}/**/*"]).on('change', livereload.changed)
   gulp.watch ["#{src_path}/#{styles_path}/**/*.less"], ['css']
-  gulp.watch ["#{src_path}/#{js_path}/**/*.js"], ['js', 'lint']
+  gulp.watch ["#{src_path}/#{js_path}/**/*.js"], ['js']
   gulp.watch ["#{src_path}/#{img_path}/**/*"], ['img']
-  gulp.watch ["#{src_path}/templates/**/*"], ['css', 'js', 'cssVendor', 'jsVendor', 'index']
+  gulp.watch ["#{src_path}/public/data/*"], ['copy']
+  gulp.watch ["#{src_path}/templates/**/*"], ->
+    runSequence('html', ['css', 'js', 'cssVendor', 'jsVendor', 'index'])

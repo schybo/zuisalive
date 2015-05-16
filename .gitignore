@@ -1,5 +1,4 @@
-bower_components
 node_modules
-.tmp
-todo
+*.tmp
 .DS_Store
+src/vendor/*

@@ -19,7 +19,7 @@ d3.json('/data/basic.json', function(data) {
     chart.yAxis
         .tickFormat(d3.format(',.2f'));
 
-    d3.select('#chart2 svg')
+    d3.select('#chart5 svg')
       .datum(data)
       .call(chart);
 

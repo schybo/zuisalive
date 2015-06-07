@@ -1,0 +1,13 @@
+{
+	"version": "1.0",
+	"name": "Zuisalive",
+	"description": "Visualizing data the easy way",
+	"icons": {
+		"60": "images\/favicon\/firefox_app_60x60.png",
+		"128": "images\/favicon\/firefox_app_128x128.png"
+	},
+	"developer": {
+		"name": "Brent Scheibelhut",
+		"url": "https:\/\/brentscheibelhut.com"
+	}
+}
